@@ -1,90 +1,19 @@
-mini_al - Mini Audio Library
-============================
-mini_al is a simple library for playing and recording audio. It's focused on simplicity and has
-a very small number of APIs. This is not a full-featured audio library, nor will it ever be. It
-is intended to be used as a quick and easy way to connect to an audio device and deliver and
-capture audio data from speakers and microphones.
+This is a fork of the miniaudio library that is used as a submodule and will
+NOT be updated. If I have time I will remove some of the features as they are
+not needed. __All credits go to the original author__
 
-C/C++, single file, public domain.
+## Miniaudio
+miniaudio is a library written in C with no dependencies except the standard 
+library and should compile clean on all major compilers without the need to 
+install any additional development packages. All major desktop and mobile platforms
+are supported.
 
+## Building
 
-Features
-========
-- A very simple API.
-- Both synchronous and asynchronous APIs.
-
-
-
-Examples
-========
-
-Asynchonous API
----------------
-In asynchronous mode, mini_al will request and deliver audio data through callbacks.
-
+Do the following in one source file:
+```c
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 ```
-mal_uint32 on_send_audio_data(mal_device* pDevice, mal_uint32 sampleCount, void* pSamples)
-{
-    return drwav_read_f32((drwav*)pDevice->pUserData, sampleCount, pSamples);
-}
-
-int main()
-{
-    mal_uint32 channels = 2;
-    mal_uint32 sampleRate = 44100;
-    mal_uint32 fragmentSizeInFrames = 512;
-    mal_uint32 fragmentCount = 2;
-
-    mal_device playbackDevice;
-    if (mal_device_init(&playbackDevice, mal_device_type_playback, NULL, mal_format_f32, channels, sampleRate, fragmentSizeInFrames, fragmentCount) != MAL_SUCCESS) {
-        return -1;
-    }
-    
-    mal_device_set_send_callback(&playbackDevice, on_send_audio_data);
-    mal_device_start(&playbackDevice);
-
-    printf("Press Enter to quit...\n");
-    getchar();
-
-    mal_device_uninit(&playbackDevice);
-    return 0;
-} 
-```
-
-Synchronous API
----------------
-In synchronous mode, the application submits audio data to the device using APIs which block until
-the device is ready to receive it.
-
-```
-int main()
-{
-    mal_uint32 channels = 2;
-    mal_uint32 sampleRate = 44100;
-    mal_uint32 fragmentSizeInFrames = 512;
-    mal_uint32 fragmentCount = 2;
-
-    mal_device playbackDevice;
-    if (mal_device_init_synchronous(&playbackDevice, mal_device_type_playback, NULL, mal_format_f32, channels, sampleRate, fragmentSizeInFrames, fragmentCount) != MAL_SUCCESS) {
-        return -1;
-    }
-    
-    mal_device_start(&playbackDevice);
-    
-    for (;;) {
-        float pSamples[512];
-        mal_uint32 samplesToWrite = drwav_read_f32(&wav, fragmentSizeInFrames * fragmentCount, pSamples);
-        if (samplesToWrite == 0) {
-            break;
-        }
-        
-        mal_uint32 samplesWritten = mal_device_write(&playbackDevice, samplesToWrite, pSamples);
-        if (samplesWritte != samplesToWrite) {
-            break;
-        }
-    }
-    
-    mal_device_uninit(&playbackDevice);
-    return 0;
-}
-```
+If you get errors about undefined references to `__sync_val_compare_and_swap_8`, 
+`__atomic_load_8`, etc. you need to link with `-latomic`.
